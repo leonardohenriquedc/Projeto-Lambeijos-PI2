@@ -1,9 +1,5 @@
--- Cria o banco de dados
-CREATE DATABASE adocao_site;
+DROP TABLE IF EXISTS users;
 
-USE adocao_site;
-
--- Tabela de usuários
 CREATE TABLE users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
@@ -12,7 +8,21 @@ CREATE TABLE users (
   createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabela de pets
+DROP TABLE IF EXISTS saude_pets;
+ 
+CREATE TABLE saude_pets (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  pet_id INT NOT NULL,
+  vacinas TEXT,                  -- Lista de vacinas tomadas
+  doencas TEXT,                  -- Possíveis doenças que já teve
+  idade INT,                     -- Idade atual do pet
+  cuidados TEXT,                  -- Cuidados especiais com o pet
+  identificacao VARCHAR(100),     -- Identificação do pet (microchip, coleira etc)
+  ultima_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+DROP TABLE IF EXISTS pets;
+
 CREATE TABLE pets (
   id INT AUTO_INCREMENT PRIMARY KEY,
   type VARCHAR(50) NOT NULL,
@@ -23,10 +33,12 @@ CREATE TABLE pets (
   gender VARCHAR(10),
   description TEXT,
   location VARCHAR(100),
+  image_url VARCHAR(255),
   createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabela para solicitações de adoção
+DROP TABLE IF EXISTS adoption_requests;
+
 CREATE TABLE adoption_requests (
   id INT AUTO_INCREMENT PRIMARY KEY,
   pet_name VARCHAR(100) NOT NULL,
@@ -39,7 +51,8 @@ CREATE TABLE adoption_requests (
   createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabela para parceiros
+DROP TABLE IF EXISTS partners;
+
 CREATE TABLE partners (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100) NOT NULL,

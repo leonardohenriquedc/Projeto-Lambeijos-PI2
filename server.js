@@ -1,9 +1,11 @@
 // server.js
 const express = require('express');
 const bodyParser = require('body-parser');
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
+require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -18,7 +20,7 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   fileFilter: function (req, file, cb) {
     if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
@@ -33,14 +35,20 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use('/uploads', express.static('public/uploads')); // Servir arquivos estáticos da pasta uploads
+//Pegando os dados das variaveis de ambiente para conexão DB: 
+const host = process.env.HOST;
+const portDb = process.env.PORTDB;
+const user = process.env.USER_DB;
+const password = process.env.PASSWORD;
+const database = process.env.DATABASE;
 
 // Conexão com o MySQL utilizando um pool de conexões
 const db = mysql.createPool({
-  host: 'localhost', // Somente 'localhost'
-  port: 3306,        // Especifica a porta separadamente (opcional, pois 3306 é o padrão)
-  user: 'root',       // Substitua pelo seu usuário do MySQL
-  password: '01404002Aa*',     // Substitua pela sua senha do MySQL
-  database: 'adocao_site'
+  host: host, // Somente 'localhost'
+  port: portDb,        // Especifica a porta separadamente (opcional, pois 3306 é o padrão)
+  user: user,       // Substitua pelo seu usuário do MySQL
+  password: password,     // Substitua pela sua senha do MySQL
+  database: database
 });
 
 // Testa a conexão com o MySQL
@@ -52,6 +60,31 @@ db.getConnection((err, connection) => {
     connection.release();
   }
 });
+
+// Lê os arquivos SQL
+const dbsql = fs.readFileSync(process.env.DBSQL, 'utf8');
+const dbsqlAddImageColumn = fs.readFileSync(process.env.DBSQL_ADD_IMAGE_COLUMN, 'utf8');
+const dbsqlCreatePets_table = fs.readFileSync(process.env.DBSQL_CREATE_PETS_TABLE, 'utf8');
+const dbsqlDatabase = fs.readFileSync(process.env.DBSQL_DATABASE, 'utf8');
+
+// Função para executar cada arquivo SQL
+async function executeSQLContent(sqlContent) {
+  // Remove comentários -- e linhas vazias
+  const cleanSQL = sqlContent.replace(/--.*\n/g, '').trim();
+  const queries = cleanSQL.split(';').map(q => q.trim()).filter(q => q);
+
+  for (const query of queries) {
+    if (query) {
+      await db.query(query);
+    }
+  }
+}
+
+// Executa cada arquivo SQL
+executeSQLContent(dbsql);               // Cria as tabelas principais
+//executeSQLContent(dbsqlDatabase);       // Cria o banco, se necessário
+executeSQLContent(dbsqlCreatePets_table); // Tabela pets extra, se existir
+//executeSQLContent(dbsqlAddImageColumn);
 
 // Endpoint para buscar os pets, com suporte a filtros via query string
 app.get('/api/pets', (req, res) => {
@@ -84,6 +117,8 @@ app.get('/api/pets', (req, res) => {
     sql += ' WHERE ' + filters.join(' AND ');
   }
 
+  console.log("Passou pelos filtros em /api/pets");
+
   db.query(sql, queryParams, (err, results) => {
     if (err) {
       console.error(err);
@@ -108,6 +143,7 @@ app.post('/api/register', (req, res) => {
       return res.status(500).json({ success: false, message: "Erro ao cadastrar usuário" });
     }
     res.json({ success: true, message: "Cadastro realizado com sucesso", userId: results.insertId });
+    console.log("API rota register chamado");
   });
 });
 
@@ -147,15 +183,15 @@ app.post('/api/registerPet', upload.single('photo'), (req, res) => {
   const photoUrl = req.file ? `/uploads/pets/${req.file.filename}` : null;
 
   const sql = "INSERT INTO pets (type, name, breed, age, size, gender, description, location, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-  
+
   db.execute(sql, [type, name, breed, age, size, gender, description, location, photoUrl], (err, results) => {
     if (err) {
       console.error('Erro na query:', err);
       return res.status(500).json({ success: false, message: "Erro ao cadastrar pet" });
     }
-    res.json({ 
-      success: true, 
-      message: "Pet cadastrado com sucesso para adoção", 
+    res.json({
+      success: true,
+      message: "Pet cadastrado com sucesso para adoção",
       petId: results.insertId,
       imageUrl: photoUrl
     });
@@ -179,7 +215,7 @@ app.post('/api/partner', (req, res) => {
 app.get('/api/placeholder/:width/:height', (req, res) => {
   const width = parseInt(req.params.width) || 300;
   const height = parseInt(req.params.height) || 300;
-  
+
   // Cria um SVG simples como placeholder
   const svg = `
     <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">

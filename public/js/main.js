@@ -21,7 +21,7 @@ function closeModal(modalId) {
 }
 
 // Fecha o modal ao clicar fora dele
-window.onclick = function(event) {
+window.onclick = function (event) {
   if (event.target.classList.contains('modal')) {
     event.target.classList.remove('show');
     document.body.style.overflow = 'auto';
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function fetchPets(queryParams = '') {
     const url = '/api/pets' + queryParams;
     fetch(url)
-      .then(response => response.json())
+      .then(response => { response.json(); console.log("Foi chamado o fetchpets") })
       .then(pets => {
         renderPets(pets);
       })
@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Evento submit para o formulário de busca
   if (searchForm) {
-    searchForm.addEventListener('submit', function(e) {
+    searchForm.addEventListener('submit', function (e) {
       e.preventDefault();
 
       // Obtém os valores dos filtros
@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Configura o envio do formulário de cadastro de pet
   const registerPetForm = document.getElementById('registerPetForm');
   if (registerPetForm) {
-    registerPetForm.addEventListener('submit', function(e) {
+    registerPetForm.addEventListener('submit', function (e) {
       e.preventDefault();
 
       // Obtém os valores dos campos do formulário
@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Log para verificar os dados antes do envio
       console.log("Enviando dados para cadastro de pet com imagem");
-      
+
       // Mostra feedback visual do envio
       const submitButton = registerPetForm.querySelector('button[type="submit"]');
       submitButton.disabled = true;
@@ -165,42 +165,42 @@ document.addEventListener('DOMContentLoaded', () => {
         method: 'POST',
         body: formData
       })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Erro na resposta do servidor');
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log("Resposta do servidor:", data);
-        if (data.success) {
-          alert('Pet cadastrado com sucesso!');
-          registerPetForm.reset();
-          document.getElementById('preview-img').style.display = 'none';
-          closeModal('registerPetModal');
-          fetchPets();
-        } else {
-          throw new Error(data.message || 'Erro ao cadastrar pet');
-        }
-      })
-      .catch(error => {
-        console.error('Erro ao cadastrar pet:', error);
-        alert('Erro ao cadastrar pet: ' + error.message);
-      })
-      .finally(() => {
-        // Restaura o botão
-        submitButton.disabled = false;
-        submitButton.textContent = 'Cadastrar animal';
-      });
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Erro na resposta do servidor');
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log("Resposta do servidor:", data);
+          if (data.success) {
+            alert('Pet cadastrado com sucesso!');
+            registerPetForm.reset();
+            document.getElementById('preview-img').style.display = 'none';
+            closeModal('registerPetModal');
+            fetchPets();
+          } else {
+            throw new Error(data.message || 'Erro ao cadastrar pet');
+          }
+        })
+        .catch(error => {
+          console.error('Erro ao cadastrar pet:', error);
+          alert('Erro ao cadastrar pet: ' + error.message);
+        })
+        .finally(() => {
+          // Restaura o botão
+          submitButton.disabled = false;
+          submitButton.textContent = 'Cadastrar animal';
+        });
     });
   }
 
   // Configura o envio do formulário de contato
   const contactForm = document.querySelector('#contact form');
   if (contactForm) {
-    contactForm.addEventListener('submit', function(e) {
+    contactForm.addEventListener('submit', function (e) {
       e.preventDefault();
-      
+
       // Aqui você pode adicionar a lógica para enviar o e-mail
       // Por enquanto, vamos apenas mostrar uma mensagem de sucesso
       alert('Mensagem enviada com sucesso! Entraremos em contato em breve.');

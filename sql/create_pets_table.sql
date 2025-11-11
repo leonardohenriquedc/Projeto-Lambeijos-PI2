@@ -1,9 +1,6 @@
--- Criação do banco de dados se não existir
-CREATE DATABASE IF NOT EXISTS adocao_site;
-USE adocao_site;
+DROP TABLE IF EXISTS pets;
 
--- Criação da tabela pets
-CREATE TABLE IF NOT EXISTS pets (
+CREATE TABLE pets (
     id INT AUTO_INCREMENT PRIMARY KEY,
     type VARCHAR(50) NOT NULL,
     name VARCHAR(100) NOT NULL,
@@ -15,7 +12,4 @@ CREATE TABLE IF NOT EXISTS pets (
     location VARCHAR(100) NOT NULL,
     image_url VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Se a tabela já existir e precisar adicionar a coluna image_url
-ALTER TABLE pets ADD COLUMN IF NOT EXISTS image_url VARCHAR(255) AFTER location; 
+); 

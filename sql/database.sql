@@ -1,7 +1,4 @@
--- Recria a tabela pets com a coluna image_url
-DROP TABLE IF EXISTS pets;
-
-CREATE TABLE pets (
+CREATE TABLE IF NOT EXISTS pets (
     id INT AUTO_INCREMENT PRIMARY KEY,
     type VARCHAR(50) NOT NULL,
     name VARCHAR(100) NOT NULL,
@@ -13,4 +10,4 @@ CREATE TABLE pets (
     location VARCHAR(100) NOT NULL,
     image_url VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-); 
+);
