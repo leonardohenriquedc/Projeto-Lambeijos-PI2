@@ -1,7 +1,7 @@
 // server.js
 const express = require('express');
 const bodyParser = require('body-parser');
-const mysql = require('mysql2/promise');
+const mysql = require('mysql2');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -68,14 +68,20 @@ const dbsqlCreatePets_table = fs.readFileSync(process.env.DBSQL_CREATE_PETS_TABL
 const dbsqlDatabase = fs.readFileSync(process.env.DBSQL_DATABASE, 'utf8');
 
 // Função para executar cada arquivo SQL
-async function executeSQLContent(sqlContent) {
+function executeSQLContent(sqlContent) {
   // Remove comentários -- e linhas vazias
   const cleanSQL = sqlContent.replace(/--.*\n/g, '').trim();
   const queries = cleanSQL.split(';').map(q => q.trim()).filter(q => q);
 
   for (const query of queries) {
     if (query) {
-      await db.query(query);
+      db.query(query, (err, results) => {
+        if (err) {
+          console.log("Deu erro na query do executeSQLContent");
+        }
+
+        console.log("executeSQLContent: ", results);
+      });
     }
   }
 }
@@ -87,7 +93,7 @@ executeSQLContent(dbsqlCreatePets_table); // Tabela pets extra, se existir
 //executeSQLContent(dbsqlAddImageColumn);
 
 // Endpoint para buscar os pets, com suporte a filtros via query string
-app.get('/api/pets', (req, res) => {
+app.get('/api/pets', async (req, res) => {
   let sql = 'SELECT *, image_url as imageUrl FROM pets';
   let filters = [];
   let queryParams = [];
@@ -123,7 +129,10 @@ app.get('/api/pets', (req, res) => {
     if (err) {
       console.error(err);
       return res.status(500).json({ success: false, message: 'Erro ao buscar pets' });
+      console.log("Entrou na condicional de erro");
     }
+
+    console.log(results.imageUrl);
     // Garante que a URL da imagem está completa
     const petsWithFullImageUrl = results.map(pet => ({
       ...pet,
@@ -131,6 +140,7 @@ app.get('/api/pets', (req, res) => {
     }));
     res.json(petsWithFullImageUrl);
   });
+  console.log("Passou pelo DB");
 });
 
 // Endpoint para cadastro de usuário

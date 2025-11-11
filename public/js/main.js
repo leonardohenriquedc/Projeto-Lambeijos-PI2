@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function fetchPets(queryParams = '') {
     const url = '/api/pets' + queryParams;
     fetch(url)
-      .then(response => { response.json(); console.log("Foi chamado o fetchpets") })
+      .then(response => { console.log("Foi chamado o fetchpets"); return response.json() })
       .then(pets => {
         renderPets(pets);
       })
